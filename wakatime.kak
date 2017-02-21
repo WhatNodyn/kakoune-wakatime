@@ -36,7 +36,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 		this=$(date "+%s")
 
 		# Every command will look like that.
-		command="$kak_opt_wakatime_command --entity \"$kak_buffile\" --time $this --plugin \"kakoune-wakatime/$wakatime_version\""
+		command="$kak_opt_wakatime_command --entity \"$kak_buffile\" --time $this"
 
 		# If we have the cursor position, then let's hand it off to WakaTime.
 		if [ -n "$kak_cursor_byte_offset" ]; then
@@ -116,7 +116,7 @@ def -hidden	wakatime-init %{
 			fi
 		fi
 		echo "echo -debug '[WakaTime] Ready. Heartbeats will be sent with $command.'"
-		command="$command --config $kak_opt_wakatime_file --plugin \"wakatime.kak/$kak_opt_wakatime_version\""
+		command="$command --config $kak_opt_wakatime_file --plugin \"kakoune-wakatime/$kak_opt_wakatime_version\""
 		command="$command $kak_opt_wakatime_options"
 		echo "set global wakatime_command '$command'"
 		echo "hook -group WakaTime global InsertKey .* %{ wakatime-heartbeat }"
