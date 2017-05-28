@@ -1,16 +1,18 @@
 # wakatime.kak version 3.0.0
 # By Nodyn
 
-decl str	wakatime_file		%sh{ printf "$HOME/.wakatime.cfg" }
-decl str	wakatime_options
+decl str		wakatime_file		%sh{ printf "$HOME/.wakatime.cfg" }
+decl str		wakatime_options
 
-decl str	wakatime_version	"3.0.1"
-decl str	wakatime_command
-decl str	wakatime_plugin		%sh{ dirname "$kak_source" }
+decl -hidden str	wakatime_version	"3.0.1"
+decl -hidden str	wakatime_command
+decl -hidden str	wakatime_plugin		%sh{ dirname "$kak_source" }
 
-decl str	wakatime_beat_rate	120
-decl str	wakatime_last_file
-decl int	wakatime_last_beat
+decl -hidden str	wakatime_beat_rate	120
+decl -hidden str	wakatime_last_file
+decl -hidden int	wakatime_last_beat
+
+decl -hidden bool	wakatime_debug		false
 
 def -hidden	wakatime-create-config %{
 	%sh{
@@ -51,18 +53,24 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 		# The command is complete, now let's see if we have to send a heartbeat?
 		if [ "$kak_buffile" != "$kak_opt_wakatime_last_file" ]; then
 			# The focused file changed, update the variable taking care of that and send an heartbeat.
-			echo "echo -debug '[WakaTime Debug] Heartbeat $this (Focus)'"
+			if [ "$wakatime_debug" = "true" ]; then
+				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Focus)'"
+			fi
 			echo "set global wakatime_last_file '$kak_buffile'"
 			echo "set global wakatime_last_beat $this"
 			(eval "$command") < /dev/null > /dev/null 2>&1 &
 		elif [ "$1" == "write" ]; then
 			# The focused file was flushed, send an heartbeat.
-			echo "echo -debug '[WakaTime Debug] Heartbeat $this (Write)'"
+			if [ "$wakatime_debug" = "true" ]; then
+				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Write)'"
+			fi
 			echo "set global wakatime_last_beat $this"
 			(eval "$command --write") < /dev/null > /dev/null 2>&1 &
 		elif (( $this - ${kak_opt_wakatime_last_beat:-0} >= $kak_opt_wakatime_beat_rate )); then
 			# The last heartbeat was long ago enough, we need to let WakaTime know we're still up.
-			echo "echo -debug '[WakaTime Debug] Heartbeat $this (Timeout)'"
+			if [ "$wakatime_debug" = "true" ]; then
+				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Timeout)'"
+			fi
 			echo "set global wakatime_last_beat $this"
 			(eval "$command") < /dev/null > /dev/null 2>&1 &
 		fi
@@ -123,10 +131,8 @@ def -hidden	wakatime-init %{
 		echo "hook -group WakaTime global InsertBegin .* %{ wakatime-heartbeat }"
 		echo "hook -group WakaTime global BufWritePost .* %{ wakatime-heartbeat write }"
 		echo "hook -group WakaTime global BufCreate .* %{ wakatime-heartbeat }"
-		# Prompting for the API key doesn't work. You can write the file yourself, use another WakaTime plugin
-		# or pass it as an argument through the wakatime_options option.
 		if [ ! -f "$kak_opt_wakatime_file" ]; then
-			echo "hook -group WakaTimeConfig global BufCreate .* %{ wakatime-create-config }"
+			echo "hook -group WakaTimeConfig global WinDisplay .* %{ wakatime-create-config }"
 		fi
 	}
 }
