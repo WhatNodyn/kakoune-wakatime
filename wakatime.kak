@@ -101,11 +101,11 @@ def -hidden	wakatime-init %{
 			echo "echo -debug '[WakaTime] Installing CLI in the plugin\\'s directory: $kak_opt_wakatime_plugin.'"
 			if [ -n "$(which wget 2> /dev/null)" ] && [ -n "$(which unzip 2> /dev/null)" ]; then
 				zip=$(mktemp --tmpdir "wakatime.kak-XXXXXXXXXX")
-				(wget -q "https://github.com/wakatime/wakatime/archive/master.zip" -O $zip;
-				unzip $zip -d $kak_opt_wakatime_plugin;
-				mv $kak_opt_wakatime_plugin/wakatime-master/wakatime $kak_opt_wakatime_plugin;
-				rm -rf $kak_opt_wakatime_plugin/wakatime-master;
-				rm -f $zip) < /dev/null > /dev/null 2>&1 &
+				(wget -q "https://github.com/wakatime/wakatime/archive/master.zip" -O $zip &&
+				unzip $zip -d $kak_opt_wakatime_plugin &&
+				mv $kak_opt_wakatime_plugin/wakatime-master/wakatime $kak_opt_wakatime_plugin &&
+				rm -rf $kak_opt_wakatime_plugin/wakatime-master &&
+				rm -f $zip || exit 1) < /dev/null > /dev/null 2>&1 &
 				command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
 			else
 				echo "echo -color Error 'WakaTime is not and could not be installed! Check the *debug* buffer.'"
