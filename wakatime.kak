@@ -95,7 +95,7 @@ def -hidden	wakatime-init %{
 		elif [ -f "$kak_opt_wakatime_plugin/wakatime/cli.py" ]; then
 			# It's not system-wide, but it's installed.
 			command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
-		else
+		elif [ -w "$kak_opt_wakatime_plugin" ]; then
 			# We should try to install it.
 			echo "echo 'Installing WakaTime CLI...'"
 			echo "echo -debug '[WakaTime] Installing CLI in the plugin\\'s directory: $kak_opt_wakatime_plugin.'"
@@ -122,6 +122,26 @@ def -hidden	wakatime-init %{
 				echo "echo -debug '[WakaTime] the installation.'"
 				exit 1
 			fi
+		else
+			# We're system-wide, alas the CLI is not.
+			echo "echo -color Error 'WakaTime is not installed! Check the *debug* buffer.'"
+			echo "echo -debug '[WakaTime] kakoune-wakatime is installed in a non-writable location,'"
+			echo "echo -debug '[WakaTime] most likely the system autoload directory.'"
+			echo "echo -debug '[WakaTime] You may either install WakaTime CLI yourself, via pip,'"
+			echo "echo -debug '[WakaTime] or your system\'s package manager. The binary must be in your path.'"
+			echo "echo -debug '[WakaTime] However, in the event this would be impossible, you will have'"
+			echo "echo -debug '[WakaTime] to install WakaTime in your own autoload directory, which should'"
+			echo "echo -debug '[WakaTime] be writeable. Do make sure that you have wget and unzip installed'"
+			echo "echo -debug '[WakaTime] should you choose to go that way. Restart Kakoune after installing'"
+			echo "echo -debug '[WakaTime] WakaTime or putting the plugin in a writeable location.'"
+			echo "echo -debug '[WakaTime] We are sorry for the inconvenience.'"
+			echo "echo -debug '[WakaTime] If you know what you are doing, you may install WakaTime in'"
+			echo "echo -debug '[WakaTime] $kak_opt_wakatime_plugin'"
+			echo "echo -debug '[WakaTime] with the following archive:'"
+			echo "echo -debug '[WakaTime] https://github.com/wakatime/wakatime/archive/master.zip'"
+			echo "echo -debug '[WakaTime] Do note, however, that if you can accomplish this, you should'"
+			echo "echo -debug '[WakaTime] probably install a system or Python package instead.'"
+			exit 1
 		fi
 		echo "echo -debug '[WakaTime] Ready. Heartbeats will be sent with $command.'"
 		command="$command --config $kak_opt_wakatime_file --plugin \"kakoune-wakatime/$kak_opt_wakatime_version\""
