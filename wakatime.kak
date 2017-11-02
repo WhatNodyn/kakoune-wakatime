@@ -83,7 +83,7 @@ def -hidden	wakatime-init %{
 		# Is Python installed?
 		if [ -z "$(which python 2> /dev/null)" ]; then
 			echo "echo -debug '[WakaTime] Error: Python isn\\'t installed, but is required to use WakaTime.'"
-			echo "echo -color Error 'Python isn\\'t installed, but is required to use WakaTime.'"
+			echo "echo -markup '{Error}Python isn\\'t installed, but is required to use WakaTime.'"
 			exit 1
 		fi
 
@@ -108,7 +108,7 @@ def -hidden	wakatime-init %{
 				rm -f $zip || exit 1) < /dev/null > /dev/null 2>&1 &
 				command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
 			else
-				echo "echo -color Error 'WakaTime is not and could not be installed! Check the *debug* buffer.'"
+				echo "echo -markup '{Error}WakaTime is not and could not be installed! Check the *debug* buffer.'"
 				echo "echo -debug '[WakaTime] wget or unzip not found, automatic installation failed.'"
 				echo "echo -debug '[WakaTime] You may install these and restart Kakoune, or attempt to'"
 				echo "echo -debug '[WakaTime] install the WakaTime CLI yourself.'"
@@ -124,7 +124,7 @@ def -hidden	wakatime-init %{
 			fi
 		else
 			# We're system-wide, alas the CLI is not.
-			echo "echo -color Error 'WakaTime is not installed! Check the *debug* buffer.'"
+			echo "echo -markup '{Error}WakaTime is not installed! Check the *debug* buffer.'"
 			echo "echo -debug '[WakaTime] kakoune-wakatime is installed in a non-writable location,'"
 			echo "echo -debug '[WakaTime] most likely the system autoload directory.'"
 			echo "echo -debug '[WakaTime] You may either install WakaTime CLI yourself, via pip,'"
