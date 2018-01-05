@@ -17,6 +17,7 @@ decl -hidden bool	wakatime_debug		false
 def -hidden	wakatime-create-config %{
 	%sh{
 		if [ -z "$(grep "api_key" $kak_opt_wakatime_file 2> /dev/null)" ]; then
+			mkdir -p $(dirname $kak_opt_wakatime_file)
 			echo "prompt 'Enter your WakaTime API key: ' %{ %sh{
 				echo \"[settings]\" > $kak_opt_wakatime_file
 				echo \"debug = false\" >> $kak_opt_wakatime_file
@@ -53,7 +54,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 		# The command is complete, now let's see if we have to send a heartbeat?
 		if [ "$kak_buffile" != "$kak_opt_wakatime_last_file" ]; then
 			# The focused file changed, update the variable taking care of that and send an heartbeat.
-			if [ "$wakatime_debug" = "true" ]; then
+			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Focus)'"
 			fi
 			echo "set global wakatime_last_file '$kak_buffile'"
@@ -61,14 +62,14 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 			(eval "$command") < /dev/null > /dev/null 2>&1 &
 		elif [ "$1" == "write" ]; then
 			# The focused file was flushed, send an heartbeat.
-			if [ "$wakatime_debug" = "true" ]; then
+			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Write)'"
 			fi
 			echo "set global wakatime_last_beat $this"
 			(eval "$command --write") < /dev/null > /dev/null 2>&1 &
 		elif (( $this - ${kak_opt_wakatime_last_beat:-0} >= $kak_opt_wakatime_beat_rate )); then
 			# The last heartbeat was long ago enough, we need to let WakaTime know we're still up.
-			if [ "$wakatime_debug" = "true" ]; then
+			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Timeout)'"
 			fi
 			echo "set global wakatime_last_beat $this"
