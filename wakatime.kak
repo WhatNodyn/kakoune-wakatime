@@ -4,7 +4,7 @@
 decl str		wakatime_file		%sh{ printf "$HOME/.wakatime.cfg" }
 decl str		wakatime_options
 
-decl -hidden str	wakatime_version	"3.0.1"
+decl -hidden str	wakatime_version	"3.1.0"
 decl -hidden str	wakatime_command
 decl -hidden str	wakatime_plugin		%sh{ dirname "$kak_source" }
 
@@ -81,6 +81,22 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 
 def -hidden	wakatime-init %{
 	%sh{
+		undependency() {
+			echo "echo -markup '{Error}WakaTime is not and could not be installed! Check the *debug* buffer.'"
+			echo "echo -debug '[WakaTime] $1 not found, automatic installation failed.'"
+			echo "echo -debug '[WakaTime] Restart Kakoune once this is remedied, or attempt to'"
+			echo "echo -debug '[WakaTime] install the WakaTime CLI yourself.'"
+			echo "echo -debug '[WakaTime] Try looking for it in your distribution\\'s packages.'"
+			echo "echo -debug '[WakaTime] There\\'s also the \"wakatime\" package from PyPI.'"
+			echo "echo -debug '[WakaTime] Otherwise, install it manually by downloading this archive:'"
+			echo "echo -debug '[WakaTime] https://github.com/wakatime/wakatime/archive/master.zip'"
+			echo "echo -debug '[WakaTime] and extract the contents of the wakatime-master directory there:'"
+			echo "echo -debug '[WakaTime] $kak_opt_wakatime_plugin'"
+			echo "echo -debug '[WakaTime] Once that\\'s done, you should be able to restart Kakoune and complete'"
+			echo "echo -debug '[WakaTime] the installation.'"
+			exit 1
+		}
+
 		# Is Python installed?
 		if [ -z "$(which python 2> /dev/null)" ]; then
 			echo "echo -debug '[WakaTime] Error: Python isn\\'t installed, but is required to use WakaTime.'"
@@ -100,28 +116,28 @@ def -hidden	wakatime-init %{
 			# We should try to install it.
 			echo "echo 'Installing WakaTime CLI...'"
 			echo "echo -debug '[WakaTime] Installing CLI in the plugin\\'s directory: $kak_opt_wakatime_plugin.'"
-			if [ -n "$(which wget 2> /dev/null)" ] && [ -n "$(which unzip 2> /dev/null)" ]; then
+			# We can't proceed without unzip or wget/curl
+			if [ -z "$(which unzip 2> /dev/null)" ]; then
+				undependency unzip
+				exit 1
+			elif [ -z "$(which wget 2> /dev/null)" ] && [ -z "$(which curl 2> /dev/null)" ]; then
+				undependency "wget or curl"
+				exit 1
+			else
+				url="https://github.com/wakatime/wakatime/archive/master.zip"
 				zip=$(mktemp --tmpdir "wakatime.kak-XXXXXXXXXX")
-				(wget -q "https://github.com/wakatime/wakatime/archive/master.zip" -O $zip &&
+				# We assume wget, but we'll prefer curl over it anytime.
+				download="wget -q $url -O $zip"
+				if [ -n "$(which curl 2> /dev/null)" ]; then
+					download="curl -LSs --output $zip $url"
+				fi
+
+				($download &&
 				unzip $zip -d $kak_opt_wakatime_plugin &&
 				mv $kak_opt_wakatime_plugin/wakatime-master/wakatime $kak_opt_wakatime_plugin &&
 				rm -rf $kak_opt_wakatime_plugin/wakatime-master &&
 				rm -f $zip || exit 1) < /dev/null > /dev/null 2>&1 &
 				command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
-			else
-				echo "echo -markup '{Error}WakaTime is not and could not be installed! Check the *debug* buffer.'"
-				echo "echo -debug '[WakaTime] wget or unzip not found, automatic installation failed.'"
-				echo "echo -debug '[WakaTime] You may install these and restart Kakoune, or attempt to'"
-				echo "echo -debug '[WakaTime] install the WakaTime CLI yourself.'"
-				echo "echo -debug '[WakaTime] Try looking for it in your distribution\\'s packages.'"
-				echo "echo -debug '[WakaTime] There\\'s also the \"wakatime\" package from PyPI.'"
-				echo "echo -debug '[WakaTime] Otherwise, install it manually by downloading this archive:'"
-				echo "echo -debug '[WakaTime] https://github.com/wakatime/wakatime/archive/master.zip'"
-				echo "echo -debug '[WakaTime] and extract the contents of the wakatime-master directory there:'"
-				echo "echo -debug '[WakaTime] $kak_opt_wakatime_plugin'"
-				echo "echo -debug '[WakaTime] Once that\\'s done, you should be able to restart Kakoune and complete'"
-				echo "echo -debug '[WakaTime] the installation.'"
-				exit 1
 			fi
 		else
 			# We're system-wide, alas the CLI is not.
