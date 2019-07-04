@@ -15,7 +15,7 @@ decl -hidden int	wakatime_last_beat
 decl -hidden bool	wakatime_debug		false
 
 def -hidden	wakatime-create-config %{
-	%sh{
+	evaluate-commands %sh{
 		if [ -z "$(grep "api_key" $kak_opt_wakatime_file 2> /dev/null)" ]; then
 			mkdir -p $(dirname $kak_opt_wakatime_file)
 			echo "prompt 'Enter your WakaTime API key: ' %{ %sh{
@@ -29,7 +29,7 @@ def -hidden	wakatime-create-config %{
 }
 
 def -hidden	wakatime-heartbeat -params 0..1 %{
-	%sh{
+	evaluate-commands %sh{
 		# First, if we're not in a real file, abort.
 		if [ "$kak_buffile" == "$kak_bufname" ]; then
 			exit
@@ -80,7 +80,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 }
 
 def -hidden	wakatime-init %{
-	%sh{
+	evaluate-commands %sh{
 		undependency() {
 			echo "echo -markup '{Error}WakaTime is not and could not be installed! Check the *debug* buffer.'"
 			echo "echo -debug '[WakaTime] $1 not found, automatic installation failed.'"
