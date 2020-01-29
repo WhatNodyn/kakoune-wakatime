@@ -1,22 +1,41 @@
-# wakatime.kak
+# kakoune-wakatime
 
-This plugin commits your time spent in Kakoune to [WakaTime](https://wakatime.com)!
-It'll try to use the system-wide WakaTime executable, a locally-installed one, or to download it itself. If it doesn't manage any of this, it should display an error, although UI elements in Kakoune might get a bit unpredictable with timings. Either way, things will be logged in the \*debug\* buffer, so check it when installing the plugin.
+This plugin performs time-tracking in Kakoune with [WakaTime](https://wakatime.com).
+It uses the associated CLI (the `wakatime` command) which, if not found in
+your `PATH`, it will automatically install in the plugin's directory provided
+that you have the required tools (`python`, `unzip` and `wget`/`curl`).
 
-Basically, once WakaTime is configured, you shouldn't have to manipulate the plugin, unless you want to disable it temporarily, which you can do with `rmhooks global WakaTime`.
+It is however recommended to perform a system-wide installation of the CLI.
 
 ## Installing
 
-You may put `wakatime.kak` in your autoload repository, located at `$XDG_CONFIG_HOME/kak/autoload`, or in the system autoload directory, at `/usr/share/kak/autoload`, or one of their subdirectories. Beware as a system-wide installation will only match with a system-wide installation of WakaTime itself.
+You may put `kakoune-wakatime` in your autoload repository, located at
+`$XDG_CONFIG_HOME/kak/autoload`, or in the system autoload directory, at 
+`/usr/share/kak/autoload`, or one of their subdirectories. Beware as a
+system-wide installation will only match with a system-wide installation of 
+WakaTime itself.
 
-## Added keywords
+The plugin has also been tested through [plug.kak](https://github.com/andreyorst/plug.kak),
+in which case you just need to add the following to your kakrc:
 
- - option `wakatime_file`: The path to your WakaTime configuration file. (Default: `~/.wakatime.cfg`)
- - option `wakatime_options`: The contents of this option will be appended when calling the WakaTime CLI.
+```kak
+plug "WhatNodyn/kakoune-wakatime"
+```
 
-## Dependencies
+On startup, if no api_key is available in WakaTime configuration, you will be
+prompted to input it.
 
- - `python` (Any version should work, this is a dependency of the WakaTime CLI)
- - `wakatime` (We can download it ourselves if the required packages are present)
- - `unzip` (Needed only to download WakaTime if not installed)
- - `wget` (Needed only to download WakaTime if not installed)
+## Configuration
+**NOTE**: While it is possible to disable heartbeats by removing the `WakaTime`
+hook group, there isn't a way to restart them without restarting Kakoune for
+now
+
+### `wakatime_file` (`str`)
+The path to your WakaTime configuration file, if empty (as per the default), let
+WakaTime guess.
+
+### `wakatime_options` (`str`)
+Arguments to be appended to WakaTime CLI calls
+
+### `wakatime_debug` (`bool`)
+Enable debug messages (showing each executed beat)
