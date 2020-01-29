@@ -1,8 +1,9 @@
 # wakatime.kak version 3.1.2
 # By Nodyn
 
-decl str		wakatime_file		%sh{ printf "$HOME/.wakatime.cfg" }
+decl str		wakatime_file
 decl str		wakatime_options
+decl bool		wakatime_debug		false
 
 decl -hidden str	wakatime_version	"3.1.2"
 decl -hidden str	wakatime_command
@@ -12,20 +13,14 @@ decl -hidden str	wakatime_beat_rate	120
 decl -hidden str	wakatime_last_file
 decl -hidden int	wakatime_last_beat
 
-decl -hidden bool	wakatime_debug		false
 
 def -hidden	wakatime-create-config %{
-	evaluate-commands %sh{
-		if [ -z "$(grep "api_key" $kak_opt_wakatime_file 2> /dev/null)" ]; then
-			mkdir -p $(dirname $kak_opt_wakatime_file)
-			echo "prompt 'Enter your WakaTime API key: ' %{ evaluate-commands %sh{
-				echo \"[settings]\" > $kak_opt_wakatime_file
-				echo \"debug = false\" >> $kak_opt_wakatime_file
-				echo \"api_key = \$kak_text\" >> $kak_opt_wakatime_file
-			} }"
-		fi
-	}
 	rmhooks global WakaTimeConfig
+	prompt "WakaTime API key:" %{
+		evaluate-commands %sh{
+			eval "$kak_opt_wakatime_command $kak_opt_wakatime_options --config-write api_key \"$kak_text\""
+		}
+	}
 }
 
 def -hidden	wakatime-heartbeat -params 0..1 %{
@@ -39,7 +34,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 		this=$(date "+%s")
 
 		# Every command will look like that.
-		command="$kak_opt_wakatime_command --entity \"$kak_buffile\" --time $this"
+		command="$kak_opt_wakatime_command $kak_opt_wakatime_options --entity \"$kak_buffile\" --time $this"
 
 		# If we have the cursor position, then let's hand it off to WakaTime.
 		if [ -n "$kak_cursor_byte_offset" ]; then
@@ -161,14 +156,16 @@ def -hidden	wakatime-init %{
 			exit 1
 		fi
 		echo "echo -debug '[WakaTime] Ready. Heartbeats will be sent with $command.'"
-		command="$command --config $kak_opt_wakatime_file --plugin \"kakoune/$kak_version kakoune-wakatime/$kak_opt_wakatime_version\""
-		command="$command $kak_opt_wakatime_options"
+		command="$command --plugin \"kakoune/$kak_version kakoune-wakatime/$kak_opt_wakatime_version\""
+		if [ -n "$kak_opt_wakatime_file" ]; then
+			command="$command --config $kak_opt_wakatime_file"
+		fi
 		echo "set global wakatime_command '$command'"
 		echo "hook -group WakaTime global InsertKey .* %{ wakatime-heartbeat }"
 		echo "hook -group WakaTime global InsertBegin .* %{ wakatime-heartbeat }"
 		echo "hook -group WakaTime global BufWritePost .* %{ wakatime-heartbeat write }"
 		echo "hook -group WakaTime global BufCreate .* %{ wakatime-heartbeat }"
-		if [ ! -f "$kak_opt_wakatime_file" ]; then
+		if ! eval "$command $kak_opt_wakatime_options --config-read api_key 2>&1 >/dev/null"; then
 			echo "hook -group WakaTimeConfig global WinDisplay .* %{ wakatime-create-config }"
 		fi
 	}
