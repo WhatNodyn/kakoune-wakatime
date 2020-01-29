@@ -18,7 +18,7 @@ def -hidden	wakatime-create-config %{
 	evaluate-commands %sh{
 		if [ -z "$(grep "api_key" $kak_opt_wakatime_file 2> /dev/null)" ]; then
 			mkdir -p $(dirname $kak_opt_wakatime_file)
-			echo "prompt 'Enter your WakaTime API key: ' %{ %sh{
+			echo "prompt 'Enter your WakaTime API key: ' %{ evaluate-commands %sh{
 				echo \"[settings]\" > $kak_opt_wakatime_file
 				echo \"debug = false\" >> $kak_opt_wakatime_file
 				echo \"api_key = \$kak_text\" >> $kak_opt_wakatime_file
