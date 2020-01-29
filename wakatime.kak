@@ -1,10 +1,10 @@
-# wakatime.kak version 3.0.0
+# wakatime.kak version 3.1.2
 # By Nodyn
 
 decl str		wakatime_file		%sh{ printf "$HOME/.wakatime.cfg" }
 decl str		wakatime_options
 
-decl -hidden str	wakatime_version	"3.1.0"
+decl -hidden str	wakatime_version	"3.1.2"
 decl -hidden str	wakatime_command
 decl -hidden str	wakatime_plugin		%sh{ dirname "$kak_source" }
 
@@ -161,7 +161,7 @@ def -hidden	wakatime-init %{
 			exit 1
 		fi
 		echo "echo -debug '[WakaTime] Ready. Heartbeats will be sent with $command.'"
-		command="$command --config $kak_opt_wakatime_file --plugin \"kakoune-wakatime/$kak_opt_wakatime_version\""
+		command="$command --config $kak_opt_wakatime_file --plugin \"kakoune/$kak_version kakoune-wakatime/$kak_opt_wakatime_version\""
 		command="$command $kak_opt_wakatime_options"
 		echo "set global wakatime_command '$command'"
 		echo "hook -group WakaTime global InsertKey .* %{ wakatime-heartbeat }"
