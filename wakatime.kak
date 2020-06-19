@@ -26,7 +26,7 @@ def -hidden	wakatime-create-config %{
 def -hidden	wakatime-heartbeat -params 0..1 %{
 	evaluate-commands %sh{
 		# First, if we're not in a real file, abort.
-		if [ "$kak_buffile" == "$kak_bufname" ]; then
+		if [ "$kak_buffile" = "$kak_bufname" ]; then
 			exit
 		fi
 
@@ -55,7 +55,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 			echo "set global wakatime_last_file '$kak_buffile'"
 			echo "set global wakatime_last_beat $this"
 			(eval "$command") < /dev/null > /dev/null 2>&1 &
-		elif [ "$1" == "write" ]; then
+		elif [ "$1" = "write" ]; then
 			# The focused file was flushed, send an heartbeat.
 			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Write)'"
