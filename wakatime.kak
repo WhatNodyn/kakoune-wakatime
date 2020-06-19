@@ -62,7 +62,7 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 			fi
 			echo "set global wakatime_last_beat $this"
 			(eval "$command --write") < /dev/null > /dev/null 2>&1 &
-		elif (( $this - ${kak_opt_wakatime_last_beat:-0} >= $kak_opt_wakatime_beat_rate )); then
+		elif [ $(($this - ${kak_opt_wakatime_last_beat:-0})) -gt $kak_opt_wakatime_beat_rate ]; then
 			# The last heartbeat was long ago enough, we need to let WakaTime know we're still up.
 			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Timeout)'"
