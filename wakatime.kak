@@ -92,68 +92,71 @@ def -hidden	wakatime-init %{
 			exit 1
 		}
 
-		# Is Python installed?
-		if [ -z "$(which python 2> /dev/null)" ]; then
-			echo "echo -debug '[WakaTime] Error: Python isn\\'t installed, but is required to use WakaTime.'"
-			echo "echo -markup '{Error}Python isn\\'t installed, but is required to use WakaTime.'"
-			exit 1
-		fi
-
-		# Is WakaTime installed system-wide?
+		# Is a WakaTime binary installed system-wide?
 		command=""
 		if [ -n "$(which wakatime 2> /dev/null)" ]; then
 			# Don't bother downloading it.
 			command="wakatime"
-		elif [ -f "$kak_opt_wakatime_plugin/wakatime/cli.py" ]; then
-			# It's not system-wide, but it's installed.
-			command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
-		elif [ -w "$kak_opt_wakatime_plugin" ]; then
-			# We should try to install it.
-			echo "echo 'Installing WakaTime CLI...'"
-			echo "echo -debug '[WakaTime] Installing CLI in the plugin\\'s directory: $kak_opt_wakatime_plugin.'"
-			# We can't proceed without unzip or wget/curl
-			if [ -z "$(which unzip 2> /dev/null)" ]; then
-				undependency unzip
-				exit 1
-			elif [ -z "$(which wget 2> /dev/null)" ] && [ -z "$(which curl 2> /dev/null)" ]; then
-				undependency "wget or curl"
-				exit 1
-			else
-				url="https://github.com/wakatime/wakatime/archive/master.zip"
-				zip=$(mktemp --tmpdir "wakatime.kak-XXXXXXXXXX")
-				# We assume wget, but we'll prefer curl over it anytime.
-				download="wget -q $url -O $zip"
-				if [ -n "$(which curl 2> /dev/null)" ]; then
-					download="curl -LSs --output $zip $url"
-				fi
-
-				($download &&
-				unzip $zip -d $kak_opt_wakatime_plugin &&
-				mv $kak_opt_wakatime_plugin/wakatime-master/wakatime $kak_opt_wakatime_plugin &&
-				rm -rf $kak_opt_wakatime_plugin/wakatime-master &&
-				rm -f $zip || exit 1) < /dev/null > /dev/null 2>&1 &
-				command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
-			fi
 		else
-			# We're system-wide, alas the CLI is not.
-			echo "echo -markup '{Error}WakaTime is not installed! Check the *debug* buffer.'"
-			echo "echo -debug '[WakaTime] kakoune-wakatime is installed in a non-writable location,'"
-			echo "echo -debug '[WakaTime] most likely the system autoload directory.'"
-			echo "echo -debug '[WakaTime] You may either install WakaTime CLI yourself, via pip,'"
-			echo "echo -debug '[WakaTime] or your system\'s package manager. The binary must be in your path.'"
-			echo "echo -debug '[WakaTime] However, in the event this would be impossible, you will have'"
-			echo "echo -debug '[WakaTime] to install WakaTime in your own autoload directory, which should'"
-			echo "echo -debug '[WakaTime] be writeable. Do make sure that you have wget and unzip installed'"
-			echo "echo -debug '[WakaTime] should you choose to go that way. Restart Kakoune after installing'"
-			echo "echo -debug '[WakaTime] WakaTime or putting the plugin in a writeable location.'"
-			echo "echo -debug '[WakaTime] We are sorry for the inconvenience.'"
-			echo "echo -debug '[WakaTime] If you know what you are doing, you may install WakaTime in'"
-			echo "echo -debug '[WakaTime] $kak_opt_wakatime_plugin'"
-			echo "echo -debug '[WakaTime] with the following archive:'"
-			echo "echo -debug '[WakaTime] https://github.com/wakatime/wakatime/archive/master.zip'"
-			echo "echo -debug '[WakaTime] Do note, however, that if you can accomplish this, you should'"
-			echo "echo -debug '[WakaTime] probably install a system or Python package instead.'"
-			exit 1
+			# We'll try to use a python version
+			# Is Python installed?
+			if [ -z "$(which python 2> /dev/null)" ]; then
+				echo "echo -debug '[WakaTime] Error: Python isn\\'t installed, but is required to use WakaTime.'"
+				echo "echo -markup '{Error}Python isn\\'t installed, but is required to use WakaTime.'"
+				exit 1
+			fi
+
+			if [ -f "$kak_opt_wakatime_plugin/wakatime/cli.py" ]; then
+				# It's not system-wide, but it's installed.
+				command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
+			elif [ -w "$kak_opt_wakatime_plugin" ]; then
+				# We should try to install it.
+				echo "echo 'Installing WakaTime CLI...'"
+				echo "echo -debug '[WakaTime] Installing CLI in the plugin\\'s directory: $kak_opt_wakatime_plugin.'"
+				# We can't proceed without unzip or wget/curl
+				if [ -z "$(which unzip 2> /dev/null)" ]; then
+					undependency unzip
+					exit 1
+				elif [ -z "$(which wget 2> /dev/null)" ] && [ -z "$(which curl 2> /dev/null)" ]; then
+					undependency "wget or curl"
+					exit 1
+				else
+					url="https://github.com/wakatime/wakatime/archive/master.zip"
+					zip=$(mktemp --tmpdir "wakatime.kak-XXXXXXXXXX")
+					# We assume wget, but we'll prefer curl over it anytime.
+					download="wget -q $url -O $zip"
+					if [ -n "$(which curl 2> /dev/null)" ]; then
+						download="curl -LSs --output $zip $url"
+					fi
+
+					($download &&
+					unzip $zip -d $kak_opt_wakatime_plugin &&
+					mv $kak_opt_wakatime_plugin/wakatime-master/wakatime $kak_opt_wakatime_plugin &&
+					rm -rf $kak_opt_wakatime_plugin/wakatime-master &&
+					rm -f $zip || exit 1) < /dev/null > /dev/null 2>&1 &
+					command="python $kak_opt_wakatime_plugin/wakatime/cli.py"
+				fi
+			else
+				# We're system-wide, alas the CLI is not.
+				echo "echo -markup '{Error}WakaTime is not installed! Check the *debug* buffer.'"
+				echo "echo -debug '[WakaTime] kakoune-wakatime is installed in a non-writable location,'"
+				echo "echo -debug '[WakaTime] most likely the system autoload directory.'"
+				echo "echo -debug '[WakaTime] You may either install WakaTime CLI yourself, via pip,'"
+				echo "echo -debug '[WakaTime] or your system\'s package manager. The binary must be in your path.'"
+				echo "echo -debug '[WakaTime] However, in the event this would be impossible, you will have'"
+				echo "echo -debug '[WakaTime] to install WakaTime in your own autoload directory, which should'"
+				echo "echo -debug '[WakaTime] be writeable. Do make sure that you have wget and unzip installed'"
+				echo "echo -debug '[WakaTime] should you choose to go that way. Restart Kakoune after installing'"
+				echo "echo -debug '[WakaTime] WakaTime or putting the plugin in a writeable location.'"
+				echo "echo -debug '[WakaTime] We are sorry for the inconvenience.'"
+				echo "echo -debug '[WakaTime] If you know what you are doing, you may install WakaTime in'"
+				echo "echo -debug '[WakaTime] $kak_opt_wakatime_plugin'"
+				echo "echo -debug '[WakaTime] with the following archive:'"
+				echo "echo -debug '[WakaTime] https://github.com/wakatime/wakatime/archive/master.zip'"
+				echo "echo -debug '[WakaTime] Do note, however, that if you can accomplish this, you should'"
+				echo "echo -debug '[WakaTime] probably install a system or Python package instead.'"
+				exit 1
+			fi
 		fi
 		echo "echo -debug '[WakaTime] Ready. Heartbeats will be sent with $command.'"
 		command="$command --plugin \"kakoune/$kak_version kakoune-wakatime/$kak_opt_wakatime_version\""
