@@ -26,7 +26,7 @@ def -hidden	wakatime-create-config %{
 def -hidden	wakatime-heartbeat -params 0..1 %{
 	evaluate-commands %sh{
 		# First, if we're not in a real file, abort.
-		if [ "$kak_buffile" == "$kak_bufname" ]; then
+		if [ "$kak_buffile" = "$kak_bufname" ]; then
 			exit
 		fi
 
@@ -55,14 +55,14 @@ def -hidden	wakatime-heartbeat -params 0..1 %{
 			echo "set global wakatime_last_file '$kak_buffile'"
 			echo "set global wakatime_last_beat $this"
 			(eval "$command") < /dev/null > /dev/null 2>&1 &
-		elif [ "$1" == "write" ]; then
+		elif [ "$1" = "write" ]; then
 			# The focused file was flushed, send an heartbeat.
 			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Write)'"
 			fi
 			echo "set global wakatime_last_beat $this"
 			(eval "$command --write") < /dev/null > /dev/null 2>&1 &
-		elif (( $this - ${kak_opt_wakatime_last_beat:-0} >= $kak_opt_wakatime_beat_rate )); then
+		elif [ $(($this - ${kak_opt_wakatime_last_beat:-0})) -gt $kak_opt_wakatime_beat_rate ]; then
 			# The last heartbeat was long ago enough, we need to let WakaTime know we're still up.
 			if [ "$kak_opt_wakatime_debug" = "true" ]; then
 				echo "echo -debug '[WakaTime Debug] Heartbeat $this (Timeout)'"
@@ -162,7 +162,7 @@ def -hidden	wakatime-init %{
 		fi
 		echo "set global wakatime_command '$command'"
 		echo "hook -group WakaTime global InsertKey .* %{ wakatime-heartbeat }"
-		echo "hook -group WakaTime global InsertBegin .* %{ wakatime-heartbeat }"
+		echo "hook -group WakaTime global ModeChange push:insert:.* %{ wakatime-heartbeat }"
 		echo "hook -group WakaTime global BufWritePost .* %{ wakatime-heartbeat write }"
 		echo "hook -group WakaTime global BufCreate .* %{ wakatime-heartbeat }"
 		if ! eval "$command $kak_opt_wakatime_options --config-read api_key 2>&1 >/dev/null"; then
