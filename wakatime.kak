@@ -162,7 +162,7 @@ def -hidden	wakatime-init %{
 		fi
 		echo "set global wakatime_command '$command'"
 		echo "hook -group WakaTime global InsertKey .* %{ wakatime-heartbeat }"
-		echo "hook -group WakaTime global ModeChange push:insert:.* %{ wakatime-heartbeat }"
+		echo "hook -group WakaTime global ModeChange push:.*:insert %{ wakatime-heartbeat }"
 		echo "hook -group WakaTime global BufWritePost .* %{ wakatime-heartbeat write }"
 		echo "hook -group WakaTime global BufCreate .* %{ wakatime-heartbeat }"
 		if ! eval "$command $kak_opt_wakatime_options --config-read api_key 2>&1 >/dev/null"; then
