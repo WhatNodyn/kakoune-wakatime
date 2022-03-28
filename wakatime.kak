@@ -97,6 +97,9 @@ def -hidden	wakatime-init %{
 		if [ -n "$(which wakatime 2> /dev/null)" ]; then
 			# Don't bother downloading it.
 			command="wakatime"
+		elif [ -n "$(which wakatime-cli 2> /dev/null)" ]; then
+			# Don't bother downloading it.
+			command="wakatime-cli"
 		else
 			# We'll try to use a python version
 			# Is Python installed?
